@@ -69,7 +69,7 @@ exports.signUp = async (req, res) => {
     });
 };
 
-exports.signIn = (req, res) => {
+exports.signIn = async(req, res) => {
   const { userInput, password } = req.body;
   pool
     .query(
@@ -132,8 +132,8 @@ exports.signIn = (req, res) => {
     });
 };
 
-exports.Logout = (req, res) => {
-  pool
+exports.Logout = async(req, res) => {
+ await pool
     .query(
       `UPDATE public."Users" SET authtoken = null WHERE id = '${req.user.id}'`
     ).then((result)=>{
@@ -143,5 +143,48 @@ exports.Logout = (req, res) => {
       return res.status(404).json({ code: 404, message: error.message });
     });
 };
+
+
+exports.Filter = async(req,res)=>{
+  const {price, soldquantity} = req.body
+  if(price.min > price.max || soldquantity.min > soldquantity.max){
+    return res.status(404).json({ code: 404, message: "Enter Valid Filter Value" });
+  }
+  if(price && soldquantity && price.min < price.max && soldquantity.min < soldquantity.max){
+    await pool
+    .query(
+      `SELECT public."Products".price, public."Products".soldquantity FROM public."Products" WHERE price > ${price.min} AND price < ${price.max} AND soldquantity > ${soldquantity.min} AND soldquantity < ${soldquantity.max}`
+      ).then((result)=>{
+        console.log("in both");
+        return res.status(200).json({ code: 200, message: result.rows});
+      })
+      .catch((error) => {
+        return res.status(404).json({ code: 404, message: error.message });
+      });
+    }else if(price && !soldquantity && price.min < price.max){
+      await pool
+    .query(
+      `SELECT public."Products".price FROM public."Products" WHERE price > ${price.min} AND price < ${price.max}`
+      ).then((result)=>{
+        console.log("in price");
+        return res.status(200).json({ code: 200, message: result.rows});
+      })
+      .catch((error) => {
+        return res.status(404).json({ code: 404, message: error.message });
+      });
+    }else if(!price && soldquantity && soldquantity.min < soldquantity.max){
+      await pool
+      .query(
+        `SELECT public."Products".soldquantity FROM public."Products" WHERE soldquantity > ${soldquantity.min} AND soldquantity < ${soldquantity.max}`
+        ).then((result)=>{
+          console.log("in sale");
+          return res.status(200).json({ code: 200, message: result.rows});
+        })
+      .catch((error) => {
+        return res.status(404).json({ code: 404, message: error.message });
+      });
+    } 
+}
+
 
 
