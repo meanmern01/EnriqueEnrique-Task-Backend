@@ -1,11 +1,11 @@
-const  jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 const pool = require("../Config/db.config");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
 
 const extime = 10 * 60 * 60;
 const genratetoken = (id) => {
-  return jwt.sign({id}, process.env.JWT_SECRET_KEY, {
+  return jwt.sign({ id }, process.env.JWT_SECRET_KEY, {
     expiresIn: extime,
   });
 };
@@ -69,7 +69,7 @@ exports.signUp = async (req, res) => {
     });
 };
 
-exports.signIn = async(req, res) => {
+exports.signIn = async (req, res) => {
   const { userInput, password } = req.body;
   pool
     .query(
@@ -102,7 +102,9 @@ exports.signIn = async(req, res) => {
       if (user.authtoken == null) {
         console.log("if");
         pool
-          .query(`UPDATE public."Users" SET authtoken = '${token}' WHERE username = '${user.username}'`)
+          .query(
+            `UPDATE public."Users" SET authtoken = '${token}' WHERE username = '${user.username}'`
+          )
           .then((result) => {
             return res
               .status(200)
@@ -132,59 +134,76 @@ exports.signIn = async(req, res) => {
     });
 };
 
-exports.Logout = async(req, res) => {
- await pool
+exports.Logout = async (req, res) => {
+  await pool
     .query(
       `UPDATE public."Users" SET authtoken = null WHERE id = '${req.user.id}'`
-    ).then((result)=>{
-        return res.status(200).json({ code: 200, message: "User Logout Successfully" });
+    )
+    .then((result) => {
+      return res
+        .status(200)
+        .json({ code: 200, message: "User Logout Successfully" });
     })
     .catch((error) => {
       return res.status(404).json({ code: 404, message: error.message });
     });
 };
 
-
-exports.Filter = async(req,res)=>{
-  const {price, soldquantity} = req.body
-  if(price.min > price.max || soldquantity.min > soldquantity.max){
-    return res.status(404).json({ code: 404, message: "Enter Valid Filter Value" });
-  }
-  if(price && soldquantity && price.min < price.max && soldquantity.min < soldquantity.max){
+exports.Filter = async (req, res) => {
+  const { price, soldquantity } = req.body;
+  if (price && soldquantity) {
+    if (price.min > price.max) {
+      return res
+        .status(404)
+        .json({ code: 404, message: "Enter Valid Price Filter Value" });
+    } else if (soldquantity.min > soldquantity.max) {
+      return res
+        .status(404)
+        .json({ code: 404, message: "Enter Valid Soldqauntity Filter Value" });
+    }
     await pool
-    .query(
-      `SELECT public."Products".price, public."Products".soldquantity FROM public."Products" WHERE price > ${price.min} AND price < ${price.max} AND soldquantity > ${soldquantity.min} AND soldquantity < ${soldquantity.max}`
-      ).then((result)=>{
-        console.log("in both");
-        return res.status(200).json({ code: 200, message: result.rows});
+      .query(
+        `SELECT public."Products".price, public."Products".soldquantity FROM public."Products" WHERE price >= ${price.min} AND price <= ${price.max} AND soldquantity >= ${soldquantity.min} AND soldquantity <= ${soldquantity.max}`
+      )
+      .then((result) => {
+        return res.status(200).json({ code: 200, message: result.rows });
       })
       .catch((error) => {
         return res.status(404).json({ code: 404, message: error.message });
       });
-    }else if(price && !soldquantity && price.min < price.max){
-      await pool
-    .query(
-      `SELECT public."Products".price FROM public."Products" WHERE price > ${price.min} AND price < ${price.max}`
-      ).then((result)=>{
-        console.log("in price");
-        return res.status(200).json({ code: 200, message: result.rows});
+  }
+  if (price && !soldquantity) {
+    if (price.min > price.max) {
+      return res
+        .status(404)
+        .json({ code: 404, message: "Enter Valid Price Filter Value" });
+    }
+    await pool
+      .query(
+        `SELECT public."Products".price FROM public."Products" WHERE price >= ${price.min} AND price <= ${price.max}`
+      )
+      .then((result) => {
+        return res.status(200).json({ code: 200, message: result.rows });
       })
       .catch((error) => {
         return res.status(404).json({ code: 404, message: error.message });
       });
-    }else if(!price && soldquantity && soldquantity.min < soldquantity.max){
-      await pool
+  }
+  if (!price && soldquantity) {
+    if (soldquantity.min > soldquantity.max) {
+      return res
+        .status(404)
+        .json({ code: 404, message: "Enter Valid Soldqauntity Filter Value" });
+    }
+    await pool
       .query(
         `SELECT public."Products".soldquantity FROM public."Products" WHERE soldquantity > ${soldquantity.min} AND soldquantity < ${soldquantity.max}`
-        ).then((result)=>{
-          console.log("in sale");
-          return res.status(200).json({ code: 200, message: result.rows});
-        })
+      )
+      .then((result) => {
+        return res.status(200).json({ code: 200, message: result.rows });
+      })
       .catch((error) => {
         return res.status(404).json({ code: 404, message: error.message });
       });
-    } 
-}
-
-
-
+  }
+};
