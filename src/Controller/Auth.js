@@ -17,6 +17,7 @@ exports.signUp = async (req, res) => {
       .status(400)
       .json({ code: 400, message: "Please enter a valid Email" });
   }
+  
   pool
     .query(`SELECT * FROM public."Users" WHERE username = '${username}'`)
     .then(async (result) => {
@@ -150,6 +151,9 @@ exports.Logout = async (req, res) => {
 exports.Filter = async (req, res) => {
   console.log(req.bod, "into");
   const { price, soldquantity } = req.body;
+  if(!price && !soldquantity){ 
+    return res.status(404).json({ code: 404, message: "Enter Filter Data" });
+  }
   if (price && soldquantity) {
     if (price.min > price.max) {
       return res
