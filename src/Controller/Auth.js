@@ -65,7 +65,7 @@ exports.signUp = async (req, res) => {
         });
     })
     .catch((error) => {
-      console.log(error.message);
+      return res.status(404).json({ code: 404, message: error.message });
     });
 };
 
@@ -99,8 +99,7 @@ exports.signIn = async (req, res) => {
       }
       const token = genratetoken(user.id);
 
-      if (user.authtoken == null) {
-        console.log("if");
+      if (user.authtoken == null) {       
         pool
           .query(
             `UPDATE public."Users" SET authtoken = '${token}' WHERE username = '${user.username}'`
@@ -108,13 +107,12 @@ exports.signIn = async (req, res) => {
           .then((result) => {
             return res
               .status(200)
-              .json({ code: 200, message: "User Login Successfully" });
+              .json({ code: 200, message: "User Login Successfully", token });
           })
           .catch((error) => {
             return res.status(404).json({ code: 404, message: error.message });
           });
-      } else {
-        console.log("else");
+      } else {        
         pool
           .query(
             `UPDATE public."Users" SET authtoken = '${token}' WHERE username = '${user.username}'`
@@ -122,7 +120,7 @@ exports.signIn = async (req, res) => {
           .then((result) => {
             return res
               .status(200)
-              .json({ code: 200, message: "User Login Successfully" });
+              .json({ code: 200, message: "User Login Successfully", token });
           })
           .catch((error) => {
             return res.status(404).json({ code: 404, message: error.message });
@@ -206,4 +204,17 @@ exports.Filter = async (req, res) => {
         return res.status(404).json({ code: 404, message: error.message });
       });
   }
+};
+
+exports.GetProducts = async (req, res) => {
+  await pool
+    .query(
+      `SELECT * FROM public."Products"`
+    )
+    .then((result) => {
+      return res.status(200).json({ code: 200, message: result.rows });
+    })
+    .catch((error) => {
+      return res.status(404).json({ code: 404, message: error.message });
+    });
 };

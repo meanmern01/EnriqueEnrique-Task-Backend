@@ -7,7 +7,8 @@ module.exports = (app) => {
   router.post("/signup", Controller.signUp);
   router.post("/signin", Controller.signIn);
   router.post("/logout",Authentication,Controller.Logout);
-  router.post("/filter",Controller.Filter);
+  router.post("/filter",Authentication,Controller.Filter);
+  router.get("/getproducts",Authentication,Controller.GetProducts);
 
   app.use("/api", router);
 };
