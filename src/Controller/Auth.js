@@ -17,6 +17,7 @@ exports.signUp = async (req, res) => {
       .status(400)
       .json({ code: 400, message: "Please enter a valid Email" });
   }
+  
   pool
     .query(`SELECT * FROM public."Users" WHERE username = '${username}'`)
     .then(async (result) => {
@@ -149,6 +150,9 @@ exports.Logout = async (req, res) => {
 
 exports.Filter = async (req, res) => {
   const { price, soldquantity } = req.body;
+  if(!price && !soldquantity){ 
+    return res.status(404).json({ code: 404, message: "Enter Filter Data" });
+  }
   if (price && soldquantity) {
     if (price.min > price.max) {
       return res
@@ -161,7 +165,7 @@ exports.Filter = async (req, res) => {
     }
     await pool
       .query(
-        `SELECT public."Products".price, public."Products".soldquantity FROM public."Products" WHERE price >= ${price.min} AND price <= ${price.max} AND soldquantity >= ${soldquantity.min} AND soldquantity <= ${soldquantity.max}`
+        `SELECT * FROM public."Products" WHERE price >= ${price.min} AND price <= ${price.max} AND soldquantity >= ${soldquantity.min} AND soldquantity <= ${soldquantity.max}`
       )
       .then((result) => {
         return res.status(200).json({ code: 200, message: result.rows });
@@ -178,7 +182,7 @@ exports.Filter = async (req, res) => {
     }
     await pool
       .query(
-        `SELECT public."Products".price FROM public."Products" WHERE price >= ${price.min} AND price <= ${price.max}`
+        `SELECT * FROM public."Products" WHERE price >= ${price.min} AND price <= ${price.max}`
       )
       .then((result) => {
         return res.status(200).json({ code: 200, message: result.rows });
@@ -195,7 +199,7 @@ exports.Filter = async (req, res) => {
     }
     await pool
       .query(
-        `SELECT public."Products".soldquantity FROM public."Products" WHERE soldquantity > ${soldquantity.min} AND soldquantity < ${soldquantity.max}`
+        `SELECT * FROM public."Products" WHERE soldquantity > ${soldquantity.min} AND soldquantity < ${soldquantity.max}`
       )
       .then((result) => {
         return res.status(200).json({ code: 200, message: result.rows });
