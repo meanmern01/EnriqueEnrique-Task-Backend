@@ -8,7 +8,6 @@ module.exports = (app) => {
   router.post("/logout", Authentication, Controller.Logout);
   router.post("/filter", Authentication, Controller.Filter);
   router.get("/getproducts", Authentication, Controller.GetProducts);
-  router.get("/users", Authentication, Controller.GetUsers);
 
   app.use("/api", router);
 };
