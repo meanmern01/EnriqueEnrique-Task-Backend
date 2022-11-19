@@ -17,7 +17,7 @@ exports.signUp = async (req, res) => {
       .status(400)
       .json({ code: 400, message: "Please enter a valid Email" });
   }
-  
+
   pool
     .query(`SELECT * FROM public."Users" WHERE username = '${username}'`)
     .then(async (result) => {
@@ -100,28 +100,34 @@ exports.signIn = async (req, res) => {
       }
       const token = genratetoken(user.id);
 
-      if (user.authtoken == null) {       
+      if (user.authtoken == null) {
         pool
           .query(
             `UPDATE public."Users" SET authtoken = '${token}' WHERE username = '${user.username}'`
           )
           .then((result) => {
-            return res
-              .status(200)
-              .json({ code: 200, message: "User Login Successfully", token });
+            return res.status(200).json({
+              code: 200,
+              message: "User Login Successfully",
+              token,
+              user,
+            });
           })
           .catch((error) => {
             return res.status(404).json({ code: 404, message: error.message });
           });
-      } else {        
+      } else {
         pool
           .query(
             `UPDATE public."Users" SET authtoken = '${token}' WHERE username = '${user.username}'`
           )
           .then((result) => {
-            return res
-              .status(200)
-              .json({ code: 200, message: "User Login Successfully", token });
+            return res.status(200).json({
+              code: 200,
+              message: "User Login Successfully",
+              token,
+              user,
+            });
           })
           .catch((error) => {
             return res.status(404).json({ code: 404, message: error.message });
@@ -149,8 +155,9 @@ exports.Logout = async (req, res) => {
 };
 
 exports.Filter = async (req, res) => {
+  console.log(req.bod, "into");
   const { price, soldquantity } = req.body;
-  if(!price && !soldquantity){ 
+  if (!price && !soldquantity) {
     return res.status(404).json({ code: 404, message: "Enter Filter Data" });
   }
   if (price && soldquantity) {
@@ -212,9 +219,7 @@ exports.Filter = async (req, res) => {
 
 exports.GetProducts = async (req, res) => {
   await pool
-    .query(
-      `SELECT * FROM public."Products"`
-    )
+    .query(`SELECT * FROM public."Products"`)
     .then((result) => {
       return res.status(200).json({ code: 200, message: result.rows });
     })
